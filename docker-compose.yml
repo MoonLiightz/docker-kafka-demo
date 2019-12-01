@@ -1,0 +1,110 @@
+version: '3'
+
+services:
+
+  # Zookeeper
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    volumes:
+      - $PWD/data/zookeeper/data:/opt/zookeeper-3.4.13/data
+    networks:
+      custom:
+        ipv4_address: ${DOCKER_NETWORK_SUBNET_PRAEFIX}.2
+
+  # Kafka Manager (WebUI)
+  manager:
+    image: hlebalbau/kafka-manager:2.0.0.2
+    command: -Dpidfile.path=/dev/null
+    expose:
+      - 9000
+    environment:
+      ZK_HOSTS: "zookeeper:2181"
+      APPLICATION_SECRET: "ad1b66e5-fb47-42ba-8f7a-9312e9b428ea"
+    depends_on:
+      - zookeeper
+    networks:
+      custom:
+        ipv4_address: ${DOCKER_NETWORK_SUBNET_PRAEFIX}.3
+
+  # Kafka Broker 1
+  broker1:
+    image: wurstmeister/kafka:2.12-2.3.0
+    hostname: broker1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $PWD/data/broker1:/kafka
+    expose:
+      - 9092
+      - 9094
+      - 1099
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: broker1
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG_DIRS: /kafka/kafka-logs-1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=broker1 -Dcom.sun.management.jmxremote.rmi.port=1099"
+      JMX_PORT: 1099
+    depends_on:
+      - zookeeper
+    networks:
+      custom:
+        ipv4_address: ${DOCKER_NETWORK_SUBNET_PRAEFIX}.4
+
+  # Kafka Broker 2
+  broker2:
+    image: wurstmeister/kafka:2.12-2.3.0
+    hostname: broker2
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $PWD/data/broker2:/kafka
+    expose:
+      - 9092
+      - 9094
+      - 1099
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: broker2
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_BROKER_ID: 2
+      KAFKA_LOG_DIRS: /kafka/kafka-logs-2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=broker2 -Dcom.sun.management.jmxremote.rmi.port=1099"
+      JMX_PORT: 1099
+    depends_on:
+      - zookeeper
+    networks:
+      custom:
+        ipv4_address: ${DOCKER_NETWORK_SUBNET_PRAEFIX}.5
+
+  # Kafka Broker 3
+  broker3:
+    image: wurstmeister/kafka:2.12-2.3.0
+    hostname: broker3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - $PWD/data/broker3:/kafka
+    expose:
+      - 9092
+      - 9094
+      - 1099
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: broker3
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_BROKER_ID: 3
+      KAFKA_LOG_DIRS: /kafka/kafka-logs-3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=broker3 -Dcom.sun.management.jmxremote.rmi.port=1099"
+      JMX_PORT: 1099
+    depends_on:
+      - zookeeper
+    networks:
+      custom:
+        ipv4_address: ${DOCKER_NETWORK_SUBNET_PRAEFIX}.6
+
+networks:
+  custom:
+    external:
+      name: ${DOCKER_NETWORK}
